@@ -15,6 +15,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function DiscoverClasses({ onOpenJoinCodeModal }) {
   const { 
@@ -23,6 +24,7 @@ export default function DiscoverClasses({ onOpenJoinCodeModal }) {
     joinClassroom, 
     enterClassroom 
   } = useSchool();
+  const { t, localizeSubject, localizeGrade, localizeText } = useLanguage();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterSubject, setFilterSubject] = useState('All');
@@ -50,22 +52,22 @@ export default function DiscoverClasses({ onOpenJoinCodeModal }) {
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white text-xs font-bold uppercase tracking-wider mb-2">
-              <Compass className="w-3.5 h-3.5 text-[#F4C95D]" /> Grade Discovery Hub
+              <Compass className="w-3.5 h-3.5 text-[#F4C95D]" /> {localizeGrade(currentUser.grade)} {t('studentSpace', 'Hub')}
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              All Classrooms for {currentUser.grade}
+              {t('discoverTitle', 'Discover Classrooms')} - {localizeGrade(currentUser.grade)}
             </h1>
             <p className="mt-1 text-xs sm:text-sm text-white/90 max-w-xl">
-              Here are all subjects and teachers assigned to <strong className="text-white underline decoration-[#F4C95D]">{currentUser.grade}</strong>. Whenever your Class Teacher or Subject Teachers create a new classroom, it appears here automatically for you to join!
+              {t('discoverSubtitle', 'Explore all active academic classrooms created by teachers for your grade.')}
             </p>
           </div>
 
           <button
             onClick={onOpenJoinCodeModal}
-            className="px-5 py-3 rounded-2xl bg-white hover:bg-slate-50 text-[#397257] font-bold text-xs shadow-md flex items-center gap-2 shrink-0 transition-all self-start md:self-auto"
+            className="px-5 py-3 rounded-2xl bg-white hover:bg-slate-50 text-[#397257] font-bold text-xs shadow-md flex items-center gap-2 shrink-0 transition-all self-start md:self-auto cursor-pointer"
           >
             <PlusCircle className="w-4 h-4 text-[#5F9F7A]" />
-            <span>Have a Code? Join Here</span>
+            <span>{t('enterWithCode', 'Have a Code? Join Here')}</span>
           </button>
         </div>
       </div>
@@ -76,7 +78,7 @@ export default function DiscoverClasses({ onOpenJoinCodeModal }) {
           <Search className="w-4 h-4 text-[#718078] absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder={`Search ${currentUser.grade} subjects or teachers...`}
+            placeholder={t('searchPlaceholderClasses', `Search ${currentUser.grade} subjects or teachers...`)}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-[#E2E8DE] text-[#24332C] text-xs placeholder:text-[#718078] focus:outline-none focus:border-[#5F9F7A]"
@@ -94,7 +96,7 @@ export default function DiscoverClasses({ onOpenJoinCodeModal }) {
                   : 'bg-white border border-[#E2E8DE] text-[#718078] hover:text-[#24332C] hover:bg-[#F6F8F3]'
               }`}
             >
-              {sub}
+              {sub === 'All' ? t('filterAllGrades', 'All') : localizeSubject(sub)}
             </button>
           ))}
         </div>
@@ -114,22 +116,22 @@ export default function DiscoverClasses({ onOpenJoinCodeModal }) {
               <div className="p-4 bg-gradient-to-r from-[#397257] to-[#5F9F7A] text-white relative">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[10px] font-bold uppercase tracking-wider bg-black/25 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/20">
-                    {c.subject}
+                    {localizeSubject(c.subject)}
                   </span>
                   {c.isClassTeacherClass ? (
                     <span className="text-[10px] font-bold bg-[#F4C95D] text-[#24332C] px-2 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
-                      <Star className="w-3 h-3 fill-[#24332C]" /> Class Teacher
+                      <Star className="w-3 h-3 fill-[#24332C]" /> {t('classTeacherNoticeBadge', 'Class Teacher')}
                     </span>
                   ) : (
                     <span className="text-[10px] font-semibold bg-white/20 px-2 py-0.5 rounded-md">
-                      {c.grade} • Sec {c.section}
+                      {localizeGrade(c.grade)} • Sec {c.section}
                     </span>
                   )}
                 </div>
                 <h3 className="font-extrabold text-base tracking-tight leading-snug line-clamp-1">
-                  {c.title}
+                  {localizeSubject(c.title)}
                 </h3>
-                <p className="text-[11px] text-white/80 mt-0.5">{c.room}</p>
+                <p className="text-[11px] text-white/80 mt-0.5">{localizeText(c.room)}</p>
               </div>
 
               {/* Body */}
@@ -143,17 +145,17 @@ export default function DiscoverClasses({ onOpenJoinCodeModal }) {
                     />
                     <div className="min-w-0 flex-1">
                       <div className="text-xs font-bold text-[#24332C] truncate">{c.teacherName}</div>
-                      <div className="text-[10px] text-[#3AA6A0] truncate font-medium">{c.teacherRole}</div>
+                      <div className="text-[10px] text-[#3AA6A0] truncate font-medium">{localizeText(c.teacherRole)}</div>
                     </div>
                   </div>
 
                   <p className="text-xs text-[#718078] mt-3 line-clamp-2 leading-relaxed">
-                    {c.description}
+                    {localizeText(c.description)}
                   </p>
 
                   <div className="mt-3 flex items-center gap-2 text-xs text-[#718078]">
                     <Clock className="w-3.5 h-3.5 text-[#5F9F7A]" />
-                    <span className="text-[11px]">{c.schedule}</span>
+                    <span className="text-[11px]">{localizeText(c.schedule)}</span>
                   </div>
                 </div>
 
@@ -164,18 +166,18 @@ export default function DiscoverClasses({ onOpenJoinCodeModal }) {
                   {isEnrolled ? (
                     <button
                       onClick={() => enterClassroom(c.id)}
-                      className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#E7F2EB] text-[#397257] border border-[#CFE4D7] text-xs font-bold hover:bg-[#CFE4D7] transition-colors"
+                      className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#E7F2EB] text-[#397257] border border-[#CFE4D7] text-xs font-bold hover:bg-[#CFE4D7] transition-colors cursor-pointer"
                     >
                       <CheckCircle2 className="w-3.5 h-3.5 text-[#5F9F7A]" />
-                      <span>Enrolled • Enter</span>
+                      <span>{t('btnAlreadyEnrolled', 'Enrolled')} • {t('viewClassBtn', 'Enter')}</span>
                     </button>
                   ) : (
                     <button
                       onClick={() => handleJoin(c.id)}
-                      className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-gradient-to-r from-[#5F9F7A] to-[#397257] hover:from-[#4D8A67] hover:to-[#2D5B45] text-white text-xs font-bold transition-all shadow-sm"
+                      className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-gradient-to-r from-[#5F9F7A] to-[#397257] hover:from-[#4D8A67] hover:to-[#2D5B45] text-white text-xs font-bold transition-all shadow-sm cursor-pointer"
                     >
                       <PlusCircle className="w-3.5 h-3.5" />
-                      <span>Join Classroom</span>
+                      <span>{t('btnJoinClassroom', 'Join Classroom')}</span>
                     </button>
                   )}
                 </div>

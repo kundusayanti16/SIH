@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useSchool } from '../../context/SchoolContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { FileCheck, Clock, CheckCircle2, Award, Upload, ArrowRight } from 'lucide-react';
 
 export default function AssignmentsView() {
   const { currentUser, studentEnrolledClassrooms, enterClassroom, submitAssignment } = useSchool();
+  const { t, localizeSubject, localizeText } = useLanguage();
   const [filter, setFilter] = useState('all'); // 'all' | 'pending' | 'submitted'
   const [selectedAsg, setSelectedAsg] = useState(null);
   const [submitText, setSubmitText] = useState('');
@@ -40,12 +42,12 @@ export default function AssignmentsView() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E7F2EB] text-[#397257] border border-[#CFE4D7] text-xs font-bold uppercase mb-2">
-            <FileCheck className="w-3.5 h-3.5" /> Homework Tracker
+            <FileCheck className="w-3.5 h-3.5" /> {t('sideAssignments') || 'Homework Tracker'}
           </div>
           <h1 className="text-2xl font-extrabold text-[#24332C] tracking-tight">
-            Assignments & Submissions
+            {t('assignmentsTitle') || 'Assignments & Submissions'}
           </h1>
-          <p className="text-xs text-[#718078]">Manage all homework across your enrolled subjects</p>
+          <p className="text-xs text-[#718078]">{t('assignmentsSubtitle') || 'Manage all homework across your enrolled subjects'}</p>
         </div>
 
         {/* Filter Pills */}
@@ -56,7 +58,7 @@ export default function AssignmentsView() {
               filter === 'all' ? 'bg-[#5F9F7A] text-white shadow-sm' : 'text-[#718078] hover:text-[#24332C]'
             }`}
           >
-            All ({allAssignments.length})
+            {t('tabAll') || 'All'} ({allAssignments.length})
           </button>
           <button
             onClick={() => setFilter('pending')}
@@ -64,7 +66,7 @@ export default function AssignmentsView() {
               filter === 'pending' ? 'bg-[#5F9F7A] text-white shadow-sm' : 'text-[#718078] hover:text-[#24332C]'
             }`}
           >
-            Pending ({allAssignments.filter(a => !a.submitted).length})
+            {t('tabPending') || 'Pending'} ({allAssignments.filter(a => !a.submitted).length})
           </button>
           <button
             onClick={() => setFilter('submitted')}
@@ -72,7 +74,7 @@ export default function AssignmentsView() {
               filter === 'submitted' ? 'bg-[#5F9F7A] text-white shadow-sm' : 'text-[#718078] hover:text-[#24332C]'
             }`}
           >
-            Completed ({allAssignments.filter(a => a.submitted).length})
+            {t('tabSubmitted') || 'Completed'} ({allAssignments.filter(a => a.submitted).length})
           </button>
         </div>
       </div>
@@ -87,19 +89,19 @@ export default function AssignmentsView() {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#E7F2EB] text-[#397257] border border-[#CFE4D7]">
-                  {asg.subject}
+                  {localizeSubject(asg.subject)}
                 </span>
                 <span className="text-[11px] text-[#976C09] font-semibold flex items-center gap-1 bg-[#FEF8E8] px-2 py-0.5 rounded-full border border-[#F8DC8E]">
                   <Clock className="w-3.5 h-3.5" />
-                  Due: {asg.dueDate}
+                  {t('dueBy') || 'Due'}: {localizeText(asg.dueDate)}
                 </span>
               </div>
 
-              <h3 className="text-sm font-extrabold text-[#24332C] mb-1">{asg.title}</h3>
-              <p className="text-xs text-[#718078] leading-relaxed line-clamp-2">{asg.description}</p>
+              <h3 className="text-sm font-extrabold text-[#24332C] mb-1">{localizeText(asg.title)}</h3>
+              <p className="text-xs text-[#718078] leading-relaxed line-clamp-2">{localizeText(asg.description)}</p>
               
               <div className="mt-3 text-[11px] text-[#718078]">
-                Instructor: <strong className="text-[#24332C]">{asg.teacherName}</strong> • {asg.points} Maximum Marks
+                {t('teacherLabel') || 'Instructor'}: <strong className="text-[#24332C]">{asg.teacherName}</strong> • {asg.points} {t('pointsLabel') || 'Maximum Marks'}
               </div>
             </div>
 
@@ -109,11 +111,11 @@ export default function AssignmentsView() {
                 <div className="flex items-center gap-2">
                   <span className="flex items-center gap-1.5 text-xs text-[#397257] font-bold bg-[#E7F2EB] px-3 py-1 rounded-full border border-[#CFE4D7]">
                     <CheckCircle2 className="w-4 h-4 text-[#5F9F7A]" />
-                    <span>Turned In</span>
+                    <span>{t('statusSubmitted') || 'Turned In'}</span>
                   </span>
                   {asg.grade && (
                     <span className="text-xs font-bold text-[#3AA6A0] bg-[#EBF8F7] px-2.5 py-1 rounded-full border border-[#ACE3E0]">
-                      Score: {asg.grade}
+                      {t('pointsLabel') || 'Score'}: {asg.grade}
                     </span>
                   )}
                 </div>
@@ -123,7 +125,7 @@ export default function AssignmentsView() {
                   className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-[#5F9F7A] hover:bg-[#4D8A67] text-white text-xs font-bold transition-colors shadow-sm"
                 >
                   <Upload className="w-3.5 h-3.5" />
-                  <span>Submit Solution</span>
+                  <span>{t('btnSubmitWork') || 'Submit Solution'}</span>
                 </button>
               )}
 
@@ -131,7 +133,7 @@ export default function AssignmentsView() {
                 onClick={() => enterClassroom(asg.classId)}
                 className="text-xs text-[#718078] hover:text-[#24332C] flex items-center gap-1 font-semibold"
               >
-                <span>View Class</span>
+                <span>{t('viewClassBtn') || 'View Class'}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -142,8 +144,8 @@ export default function AssignmentsView() {
       {filtered.length === 0 && (
         <div className="text-center py-12 bg-white rounded-2xl p-8 border border-[#E2E8DE] shadow-sm">
           <CheckCircle2 className="w-8 h-8 text-[#5F9F7A] mx-auto mb-2" />
-          <h3 className="text-sm font-bold text-[#24332C]">No assignments in this filter</h3>
-          <p className="text-xs text-[#718078] mt-1">You are all caught up on homework!</p>
+          <h3 className="text-sm font-bold text-[#24332C]">{t('noAssignments') || 'No assignments in this filter'}</h3>
+          <p className="text-xs text-[#718078] mt-1">{t('all')}: 0</p>
         </div>
       )}
 
@@ -151,15 +153,15 @@ export default function AssignmentsView() {
       {selectedAsg && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
           <div className="bg-white border border-[#E2E8DE] rounded-3xl max-w-md w-full p-6 shadow-2xl text-[#24332C]">
-            <h3 className="text-base font-bold text-[#24332C] mb-1">Turn In: {selectedAsg.title}</h3>
-            <p className="text-xs text-[#718078] mb-4">{selectedAsg.subject} • {selectedAsg.teacherName}</p>
+            <h3 className="text-base font-bold text-[#24332C] mb-1">{t('btnSubmitWork') || 'Turn In'}: {selectedAsg.title}</h3>
+            <p className="text-xs text-[#718078] mb-4">{localizeSubject(selectedAsg.subject)} • {selectedAsg.teacherName}</p>
 
             <form onSubmit={handleTurnIn} className="space-y-3.5 text-xs">
               <div>
-                <label className="font-bold text-[#24332C] block mb-1">Your Submission Note</label>
+                <label className="font-bold text-[#24332C] block mb-1">{t('btnSubmitWork') || 'Your Submission Note'}</label>
                 <textarea
                   rows={3}
-                  placeholder="Type notes or solution remarks..."
+                  placeholder={t('writeCommentPlaceholder') || 'Type notes or solution remarks...'}
                   value={submitText}
                   onChange={(e) => setSubmitText(e.target.value)}
                   className="w-full p-2.5 rounded-xl bg-[#F6F8F3] border border-[#E2E8DE] text-[#24332C] placeholder:text-[#718078] focus:border-[#5F9F7A] outline-none resize-none"
@@ -168,8 +170,8 @@ export default function AssignmentsView() {
 
               <div className="p-4 rounded-xl border-2 border-dashed border-[#CFE4D7] bg-[#F6F8F3] text-center">
                 <Upload className="w-5 h-5 text-[#5F9F7A] mx-auto mb-1" />
-                <span className="text-[11px] text-[#24332C] block font-semibold">Attached PDF / Notebook Photos</span>
-                <span className="text-[10px] text-[#718078]">Homework_Solution_Aarav.pdf (1.2 MB)</span>
+                <span className="text-[11px] text-[#24332C] block font-semibold">{t('attachmentsLabel') || 'Attached PDF / Notebook Photos'}</span>
+                <span className="text-[10px] text-[#718078]">Homework_Solution.pdf (1.2 MB)</span>
               </div>
 
               <div className="flex justify-end gap-2 pt-3 border-t border-[#E2E8DE]">
@@ -178,13 +180,13 @@ export default function AssignmentsView() {
                   onClick={() => setSelectedAsg(null)}
                   className="px-4 py-2 rounded-xl bg-[#F6F8F3] hover:bg-[#E7F2EB] text-[#718078] font-semibold"
                 >
-                  Cancel
+                  {t('cancel') || 'Cancel'}
                 </button>
                 <button
                   type="submit"
                   className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#5F9F7A] to-[#397257] hover:from-[#4D8A67] hover:to-[#2D5B45] text-white font-bold shadow-sm"
                 >
-                  Confirm Submit
+                  {t('btnSubmitWork') || 'Confirm Submit'}
                 </button>
               </div>
             </form>

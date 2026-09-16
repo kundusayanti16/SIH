@@ -19,7 +19,7 @@ import {
 
 export default function Navbar({ onOpenCreateClass, onOpenJoinClass }) {
   const { currentUser, logout, activeTab, setActiveTab, setActiveClassroomId } = useSchool();
-  const { t } = useLanguage();
+  const { t, localizeText, localizeGrade } = useLanguage();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifs, setShowNotifs] = useState(false);
 
@@ -64,7 +64,7 @@ export default function Navbar({ onOpenCreateClass, onOpenJoinClass }) {
                 {isStudent 
                   ? `${t('gradeAndSec') || 'Grade & Sec'}: ${currentUser.grade} • Sec ${currentUser.section}` 
                   : isTeacher
-                  ? `${currentUser.department || 'Faculty'}`
+                  ? `${localizeText(currentUser.department || 'Faculty')}`
                   : `Child: ${currentUser.childName} (${currentUser.childGrade})`
                 }
               </p>
@@ -157,7 +157,7 @@ export default function Navbar({ onOpenCreateClass, onOpenJoinClass }) {
                   {currentUser.name}
                 </div>
                 <div className="text-[10px] text-[#718078] dark:text-[#95ADA0]">
-                  {isStudent ? `${currentUser.grade}` : (currentUser.isClassTeacher ? 'Class Teacher' : 'Faculty')}
+                  {isStudent ? localizeGrade(currentUser.grade) : (currentUser.isClassTeacher ? (t('classTeacherInCharge') || 'Class Teacher') : (t('subjectFaculty') || 'Faculty'))}
                 </div>
               </div>
               <ChevronDown className="w-3.5 h-3.5 text-[#718078] dark:text-[#95ADA0]" />

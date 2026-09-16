@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useSchool } from '../context/SchoolContext';
+import { useLanguage } from '../context/LanguageContext';
 import { X, KeyRound, ArrowRight, BookOpen, CheckCircle2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 export default function JoinClassModal({ isOpen, onClose }) {
   const { currentUser, joinByCode, studentGradeClassrooms } = useSchool();
+  const { t, localizeSubject, localizeGrade } = useLanguage();
   const [classCode, setClassCode] = useState('');
 
   if (!isOpen) return null;
@@ -39,7 +41,7 @@ export default function JoinClassModal({ isOpen, onClose }) {
               <KeyRound className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-[#24332C]">Join Classroom with Code</h2>
+              <h2 className="text-lg font-bold text-[#24332C]">{t('btnJoinClass') || 'Join Classroom with Code'}</h2>
               <p className="text-xs text-[#718078]">Ask your teacher for the 6-character class code</p>
             </div>
           </div>
@@ -55,7 +57,7 @@ export default function JoinClassModal({ isOpen, onClose }) {
         <form onSubmit={handleSubmit} className="mt-5 space-y-4">
           <div>
             <label className="text-xs font-bold uppercase tracking-wider text-[#718078] mb-1.5 block">
-              Enter Classroom Code:
+              {t('enterWithCode') || 'Enter Classroom Code:'}
             </label>
             <input
               type="text"
@@ -72,7 +74,7 @@ export default function JoinClassModal({ isOpen, onClose }) {
           {unjoinedInGrade.length > 0 && (
             <div className="p-3.5 rounded-xl bg-[#F6F8F3] border border-[#E2E8DE]">
               <span className="text-[11px] font-bold text-[#718078] uppercase tracking-wider block mb-2">
-                Available Codes for {currentUser.grade}:
+                Available Codes for {localizeGrade(currentUser.grade)}:
               </span>
               <div className="space-y-1.5">
                 {unjoinedInGrade.map(c => (
@@ -83,7 +85,7 @@ export default function JoinClassModal({ isOpen, onClose }) {
                     className="w-full text-left p-2 rounded-lg bg-white hover:bg-[#E7F2EB] border border-[#E2E8DE] flex items-center justify-between transition-colors text-xs shadow-sm"
                   >
                     <div>
-                      <span className="font-semibold text-[#24332C]">{c.subject}</span>
+                      <span className="font-semibold text-[#24332C]">{localizeSubject(c.subject)}</span>
                       <span className="text-[10px] text-[#718078] ml-2">by {c.teacherName}</span>
                     </div>
                     <code className="text-[#397257] font-mono font-bold bg-[#E7F2EB] px-2 py-0.5 rounded border border-[#CFE4D7] text-[11px]">
@@ -101,13 +103,13 @@ export default function JoinClassModal({ isOpen, onClose }) {
               onClick={onClose}
               className="px-4 py-2.5 rounded-xl bg-[#F6F8F3] hover:bg-[#E7F2EB] text-[#718078] text-xs font-semibold transition-colors"
             >
-              Cancel
+              {t('cancel') || 'Cancel'}
             </button>
             <button
               type="submit"
               className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#3AA6A0] to-[#5F9F7A] hover:from-[#2C8782] hover:to-[#4D8A67] text-white text-xs font-bold shadow-md transition-all flex items-center gap-2"
             >
-              <span>Join Class</span>
+              <span>{t('btnJoinClass') || 'Join Class'}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>

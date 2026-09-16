@@ -13,7 +13,7 @@ import {
   BookOpen,
   ArrowRight
 } from 'lucide-react';
-import { resolveSceneDoubt, VIDEO_LANGUAGES, ASK_MOMENT_I18N } from '../../utils/aiVideoEngine';
+import { resolveSceneDoubt, VIDEO_LANGUAGES, ASK_MOMENT_I18N, resolveTTSVoice } from '../../utils/aiVideoEngine';
 
 export default function AskMomentDrawer({
   video,
@@ -65,13 +65,15 @@ export default function AskMomentDrawer({
     const utterance = new SpeechSynthesisUtterance(doubtResponse.answer);
     utterance.rate = 1.0;
 
-    const langObj = VIDEO_LANGUAGES.find(l => l.code === langKey);
+    const langObj = VIDEO_LANGUAGES.find(l => l.code === langKey) || VIDEO_LANGUAGES[0];
     const targetSpeechLang = langObj?.speechLang || 'en-US';
     utterance.lang = targetSpeechLang;
 
     const voices = window.speechSynthesis.getVoices();
-    const matchedVoice = voices.find(v => v.lang.toLowerCase().startsWith(targetSpeechLang.split('-')[0]));
-    if (matchedVoice) utterance.voice = matchedVoice;
+    const resolution = resolveTTSVoice(langKey, voices);
+    if (resolution.voice) {
+      utterance.voice = resolution.voice;
+    }
 
     utterance.onend = () => setIsSpeakingDoubt(false);
     utterance.onerror = () => setIsSpeakingDoubt(false);

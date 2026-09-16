@@ -17,6 +17,7 @@ import {
   Zap,
   Search
 } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function StudentOverview({ onOpenJoinClass, onOpenDiscover, onLaunchVideoStudio }) {
   const {
@@ -26,6 +27,7 @@ export default function StudentOverview({ onOpenJoinClass, onOpenDiscover, onLau
     enterClassroom,
     teachers
   } = useSchool();
+  const { t, localizeSubject, localizeGrade, localizeText } = useLanguage();
 
   const [quickTopic, setQuickTopic] = useState('');
 
@@ -57,24 +59,24 @@ export default function StudentOverview({ onOpenJoinClass, onOpenDiscover, onLau
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white text-xs font-bold uppercase tracking-wider mb-3">
-              <Sparkles className="w-3.5 h-3.5 text-[#F4C95D]" /> {currentUser.grade} • Section {currentUser.section} Student Space
+              <Sparkles className="w-3.5 h-3.5 text-[#F4C95D]" /> {localizeGrade(currentUser.grade)} • {t('sectionLabel', 'Section')} {currentUser.section} {t('studentSpace', 'Student Space')}
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Welcome back, {currentUser.name}! 🌟
+              {t('welcomeBack', 'Welcome back')}, {currentUser.name}! 🌟
             </h1>
             <p className="mt-1 text-xs sm:text-sm text-white/90 max-w-xl">
-              You are viewing all subjects and instructors assigned to <strong className="text-white underline decoration-[#F4C95D]">{currentUser.grade}</strong>. Stay updated with your class teacher and live lectures.
+              {t('studentWelcomeDesc', 'You are viewing all subjects and instructors assigned to your grade. Stay updated with your class teacher and live lectures.')}
             </p>
           </div>
 
           {/* Quick Stats Badges */}
           <div className="flex items-center gap-3 shrink-0">
             <div className="p-3.5 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 text-center min-w-[95px] shadow-sm">
-              <span className="text-[10px] uppercase font-bold text-white/80 block">Attendance</span>
+              <span className="text-[10px] uppercase font-bold text-white/80 block">{t('statAttendance', 'Attendance')}</span>
               <span className="text-base font-extrabold text-[#F4C95D]">{currentUser.attendance}</span>
             </div>
             <div className="p-3.5 rounded-2xl bg-white/15 backdrop-blur-md border border-white/20 text-center min-w-[95px] shadow-sm">
-              <span className="text-[10px] uppercase font-bold text-white/80 block">Grade GPA</span>
+              <span className="text-[10px] uppercase font-bold text-white/80 block">{t('statGPA', 'Grade GPA')}</span>
               <span className="text-base font-extrabold text-white">{currentUser.gpa.split('/')[0]}</span>
             </div>
           </div>
@@ -82,23 +84,23 @@ export default function StudentOverview({ onOpenJoinClass, onOpenDiscover, onLau
       </div>
 
       {/* ✨ AI Instant Topic-to-Video Generator Quick Bar */}
-      <div className="bg-gradient-to-r from-white via-[#E7F2EB] to-[#EBF8F7] rounded-3xl p-5 sm:p-6 border border-[#CFE4D7] shadow-sm space-y-3">
+      <div className="bg-gradient-to-r from-white via-[#E7F2EB] to-[#EBF8F7] dark:from-[#14221C] dark:via-[#1A2C24] dark:to-[#14221C] rounded-3xl p-5 sm:p-6 border border-[#CFE4D7] dark:border-[#22382E] shadow-sm space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-center gap-2.5">
             <div className="p-2 rounded-xl bg-[#5F9F7A] text-white shadow-sm">
               <Wand2 className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-sm text-[#24332C]">
-                Need Help Understanding Any Subject Topic?
+              <h3 className="font-bold text-sm text-[#24332C] dark:text-[#EAF2ED]">
+                {t('needHelpTitle', 'Need Help Understanding Any Subject Topic?')}
               </h3>
-              <p className="text-[11px] text-[#718078]">
-                Type any topic and our AI will dynamically create an animated video lesson with audio voiceover!
+              <p className="text-[11px] text-[#718078] dark:text-[#95ADA0]">
+                {t('needHelpDesc', 'Type any topic and our AI will dynamically create an animated video lesson with audio voiceover!')}
               </p>
             </div>
           </div>
-          <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full bg-[#5F9F7A]/20 text-[#397257] border border-[#5F9F7A]/40 self-start sm:self-auto">
-            ✨ Instant AI Video Gen
+          <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full bg-[#5F9F7A]/20 text-[#397257] dark:text-[#5F9F7A] border border-[#5F9F7A]/40 self-start sm:self-auto">
+            ✨ {t('generateAIVideo', 'Instant AI Video Gen')}
           </span>
         </div>
 
@@ -109,16 +111,16 @@ export default function StudentOverview({ onOpenJoinClass, onOpenDiscover, onLau
               type="text"
               value={quickTopic}
               onChange={(e) => setQuickTopic(e.target.value)}
-              placeholder="e.g. Photosynthesis, Structure of an Atom, Pythagorean Theorem..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white border border-[#CFE4D7] text-xs text-[#24332C] placeholder-[#718078] focus:border-[#5F9F7A] focus:ring-2 focus:ring-[#5F9F7A]/20 outline-none transition-all font-medium"
+              placeholder={t('inputTopicPlaceholder', 'e.g. Photosynthesis, Structure of an Atom, Pythagorean Theorem...')}
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white dark:bg-[#0C1411] border border-[#CFE4D7] dark:border-[#22382E] text-xs text-[#24332C] dark:text-[#EAF2ED] placeholder-[#718078] focus:border-[#5F9F7A] focus:ring-2 focus:ring-[#5F9F7A]/20 outline-none transition-all font-medium"
             />
           </div>
           <button
             type="submit"
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#5F9F7A] to-[#397257] hover:from-[#4D8A67] hover:to-[#2D5B45] text-white text-xs font-bold shadow-md shadow-[#5F9F7A]/20 transition-all flex items-center justify-center gap-1.5 shrink-0 hover:scale-105 active:scale-95"
+            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#5F9F7A] to-[#397257] hover:from-[#4D8A67] hover:to-[#2D5B45] text-white text-xs font-bold shadow-md shadow-[#5F9F7A]/20 transition-all flex items-center justify-center gap-1.5 shrink-0 hover:scale-105 active:scale-95 cursor-pointer"
           >
             <Sparkles className="w-3.5 h-3.5 text-[#F4C95D]" />
-            <span>Create Topic Video</span>
+            <span>{t('generateAIVideo', 'Create Topic Video')}</span>
           </button>
         </form>
       </div>
@@ -135,18 +137,18 @@ export default function StudentOverview({ onOpenJoinClass, onOpenDiscover, onLau
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#FEF8E8] text-[#976C09] border border-[#F8DC8E] font-bold uppercase">
-                  ★ Your Class Teacher
+                  {t('yourClassTeacher', '★ Your Class Teacher')}
                 </span>
                 <span className="text-xs font-bold text-[#24332C]">{classTeacher.name}</span>
               </div>
               <p className="text-xs text-[#718078] mt-0.5">
-                Head Teacher for <strong className="text-[#397257]">{currentUser.grade}A</strong> • {classTeacher.subject}
+                {t('headTeacherFor', 'Head Teacher for')} <strong className="text-[#397257]">{localizeGrade(currentUser.grade)}A</strong> • {localizeSubject(classTeacher.subject)}
               </p>
             </div>
           </div>
 
           <div className="text-xs text-[#718078] sm:text-right">
-            <span>Cabin: {classTeacher.cabin}</span>
+            <span>{t('cabinLabel', 'Cabin:')} {localizeText(classTeacher.cabin)}</span>
             <span className="block text-[11px] text-[#3AA6A0] font-medium">{classTeacher.email}</span>
           </div>
         </div>
@@ -162,21 +164,21 @@ export default function StudentOverview({ onOpenJoinClass, onOpenDiscover, onLau
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-white text-rose-600 font-black uppercase tracking-wider">
-                  Happening Now
+                  {t('happeningNow', 'Happening Now')}
                 </span>
-                <span className="text-xs text-white/90 font-bold">{liveClass.grade} • {liveClass.subject}</span>
+                <span className="text-xs text-white/90 font-bold">{localizeGrade(liveClass.grade)} • {localizeSubject(liveClass.subject)}</span>
               </div>
-              <h3 className="text-sm font-bold text-white mt-0.5">{liveClass.liveSession?.title || liveClass.title}</h3>
-              <p className="text-[11px] text-white/80">Instructor: {liveClass.teacherName}</p>
+              <h3 className="text-sm font-bold text-white mt-0.5">{localizeText(liveClass.liveSession?.title || liveClass.title)}</h3>
+              <p className="text-[11px] text-white/80">{t('instructorLabel', 'Instructor:')} {liveClass.teacherName}</p>
             </div>
           </div>
 
           <button
             onClick={() => enterClassroom(liveClass.id)}
-            className="px-5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-[#397257] text-xs font-extrabold shadow-md transition-all flex items-center gap-2 shrink-0 self-start sm:self-auto"
+            className="px-5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-[#397257] text-xs font-extrabold shadow-md transition-all flex items-center gap-2 shrink-0 self-start sm:self-auto cursor-pointer"
           >
             <Video className="w-4 h-4 text-[#5F9F7A]" />
-            <span>Join Live Lecture</span>
+            <span>{t('joinLiveLecture', 'Join Live Lecture')}</span>
           </button>
         </div>
       )}
@@ -190,18 +192,18 @@ export default function StudentOverview({ onOpenJoinClass, onOpenDiscover, onLau
             </div>
             <div>
               <h4 className="text-xs font-bold text-[#24332C]">
-                {unjoinedCount} More Classroom{unjoinedCount > 1 ? 's' : ''} available for {currentUser.grade}!
+                {unjoinedCount} {t('moreClassroomsAvailable', 'More Classrooms available for')} {localizeGrade(currentUser.grade)}!
               </h4>
               <p className="text-[11px] text-[#718078]">
-                New subjects created by your grade teachers are ready for you to join.
+                {t('newSubjectsReady', 'New subjects created by your grade teachers are ready for you to join.')}
               </p>
             </div>
           </div>
           <button
             onClick={onOpenDiscover}
-            className="px-3.5 py-1.5 rounded-xl bg-[#5F9F7A] hover:bg-[#4D8A67] text-white text-xs font-bold transition-colors shrink-0 shadow-sm"
+            className="px-3.5 py-1.5 rounded-xl bg-[#5F9F7A] hover:bg-[#4D8A67] text-white text-xs font-bold transition-colors shrink-0 shadow-sm cursor-pointer"
           >
-            Browse & Join
+            {t('browseAndJoin', 'Browse & Join')}
           </button>
         </div>
       )}
@@ -210,15 +212,15 @@ export default function StudentOverview({ onOpenJoinClass, onOpenDiscover, onLau
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-base font-bold text-[#24332C] flex items-center gap-2">
+            <h2 className="text-base font-bold text-[#24332C] dark:text-[#EAF2ED] flex items-center gap-2">
               <BookOpen className="w-4 h-4 text-[#5F9F7A]" />
-              <span>My {currentUser.grade} Enrolled Classrooms</span>
+              <span>{t('assignedSubjectsTitle', `My ${currentUser.grade} Enrolled Classrooms`)}</span>
             </h2>
-            <p className="text-xs text-[#718078]">All subjects you are currently attending</p>
+            <p className="text-xs text-[#718078] dark:text-[#95ADA0]">{t('assignedSubjectsSubtitle', 'All subjects you are currently attending')}</p>
           </div>
 
-          <span className="text-xs text-[#397257] font-semibold bg-[#E7F2EB] px-2.5 py-1 rounded-full border border-[#CFE4D7]">
-            {studentEnrolledClassrooms.length} Active Subjects
+          <span className="text-xs text-[#397257] dark:text-[#5F9F7A] font-semibold bg-[#E7F2EB] dark:bg-[#1A2C24] px-2.5 py-1 rounded-full border border-[#CFE4D7] dark:border-[#22382E]">
+            {studentEnrolledClassrooms.length} {t('activeSubjects', 'Active Subjects')}
           </span>
         </div>
 
@@ -227,58 +229,58 @@ export default function StudentOverview({ onOpenJoinClass, onOpenDiscover, onLau
             <div
               key={c.id}
               onClick={() => enterClassroom(c.id)}
-              className="bg-white rounded-2xl border border-[#E2E8DE] hover:border-[#5F9F7A] transition-all duration-300 overflow-hidden flex flex-col justify-between group cursor-pointer hover:-translate-y-1 shadow-sm hover:shadow-md"
+              className="bg-white dark:bg-[#14221C] rounded-2xl border border-[#E2E8DE] dark:border-[#22382E] hover:border-[#5F9F7A] transition-all duration-300 overflow-hidden flex flex-col justify-between group cursor-pointer hover:-translate-y-1 shadow-sm hover:shadow-md"
             >
               {/* Header Banner */}
               <div className="p-4 bg-gradient-to-r from-[#397257] to-[#5F9F7A] text-white relative">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-[10px] font-bold uppercase tracking-wider bg-black/25 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/20 text-white">
-                    {c.subject}
+                    {localizeSubject(c.subject)}
                   </span>
                   {c.isClassTeacherClass && (
                     <span className="text-[10px] font-bold bg-[#F4C95D] text-[#24332C] px-2 py-0.5 rounded-md flex items-center gap-1 shadow-sm">
-                      <Star className="w-3 h-3 fill-[#24332C]" /> Class Teacher
+                      <Star className="w-3 h-3 fill-[#24332C]" /> {t('classTeacherNoticeBadge', 'Class Teacher')}
                     </span>
                   )}
                 </div>
                 <h3 className="font-extrabold text-base tracking-tight leading-snug line-clamp-1 group-hover:text-white/90">
-                  {c.title}
+                  {localizeSubject(c.title)}
                 </h3>
-                <p className="text-[11px] text-white/80 mt-0.5">{c.room}</p>
+                <p className="text-[11px] text-white/80 mt-0.5">{localizeText(c.room)}</p>
               </div>
 
               {/* Body Details */}
               <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
                 <div>
-                  <div className="flex items-center gap-3 pb-3 border-b border-[#E2E8DE]">
+                  <div className="flex items-center gap-3 pb-3 border-b border-[#E2E8DE] dark:border-[#22382E]">
                     <img
                       src={c.teacherAvatar}
                       alt={c.teacherName}
-                      className="w-9 h-9 rounded-full object-cover border border-[#CFE4D7]"
+                      className="w-9 h-9 rounded-full object-cover border border-[#CFE4D7] dark:border-[#22382E]"
                     />
                     <div className="min-w-0 flex-1">
-                      <div className="text-xs font-bold text-[#24332C] truncate">{c.teacherName}</div>
-                      <div className="text-[10px] text-[#3AA6A0] truncate font-medium">{c.teacherRole}</div>
+                      <div className="text-xs font-bold text-[#24332C] dark:text-[#EAF2ED] truncate">{c.teacherName}</div>
+                      <div className="text-[10px] text-[#3AA6A0] truncate font-medium">{localizeText(c.teacherRole)}</div>
                     </div>
                   </div>
 
-                  <div className="mt-3 space-y-1.5 text-xs text-[#718078]">
+                  <div className="mt-3 space-y-1.5 text-xs text-[#718078] dark:text-[#95ADA0]">
                     <div className="flex items-center gap-2">
                       <Clock className="w-3.5 h-3.5 text-[#5F9F7A]" />
-                      <span className="text-[11px]">{c.schedule}</span>
+                      <span className="text-[11px]">{localizeText(c.schedule)}</span>
                     </div>
                     <div className="flex items-center justify-between text-[11px] pt-1">
-                      <span>Assignments: <strong className="text-[#24332C]">{c.assignments?.length || 0}</strong></span>
-                      <span>Notes: <strong className="text-[#24332C]">{c.materials?.length || 0}</strong></span>
+                      <span>{t('tabAssignments', 'Assignments')}: <strong className="text-[#24332C] dark:text-white">{c.assignments?.length || 0}</strong></span>
+                      <span>{t('tabMaterials', 'Notes')}: <strong className="text-[#24332C] dark:text-white">{c.materials?.length || 0}</strong></span>
                     </div>
                   </div>
                 </div>
 
                 {/* Enter Button */}
-                <div className="pt-3 border-t border-[#E2E8DE] flex items-center justify-between">
-                  <span className="text-[10px] font-mono text-[#718078]">{c.code}</span>
-                  <button className="flex items-center gap-1.5 text-xs font-bold text-[#5F9F7A] group-hover:text-[#397257]">
-                    <span>Enter Class</span>
+                <div className="pt-3 border-t border-[#E2E8DE] dark:border-[#22382E] flex items-center justify-between">
+                  <span className="text-[10px] font-mono text-[#718078] dark:text-[#95ADA0]">{c.code}</span>
+                  <button className="flex items-center gap-1.5 text-xs font-bold text-[#5F9F7A] group-hover:text-[#397257] dark:group-hover:text-[#7BC39A]">
+                    <span>{t('viewClassBtn', 'Enter Class')}</span>
                     <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                   </button>
                 </div>

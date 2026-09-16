@@ -21,7 +21,7 @@ import {
 
 export default function Sidebar({ onOpenCreateClass, onOpenJoinClass }) {
   const { currentUser, activeTab, setActiveTab, setActiveClassroomId, studentGradeClassrooms, teacherMyClassrooms } = useSchool();
-  const { t } = useLanguage();
+  const { t, localizeText, localizeGrade } = useLanguage();
 
   if (!currentUser) return null;
 
@@ -41,11 +41,11 @@ export default function Sidebar({ onOpenCreateClass, onOpenJoinClass }) {
 
   const teacherNavItems = [
     { id: 'overview', label: t('facultyDashboard') || 'Faculty Dashboard', icon: LayoutDashboard },
-    { id: 'video-generator', label: `${t('aiVideoStudio') || 'AI Video Studio'} (Create)`, icon: Wand2, highlight: true, badge: '✨ AI' },
+    { id: 'video-generator', label: `${t('aiVideoStudio') || 'AI Video Studio'}`, icon: Wand2, highlight: true, badge: '✨ AI' },
     { id: 'teacher-classes', label: t('myManagedClasses') || 'My Managed Classes', icon: Layers, badge: teacherMyClassrooms.length },
     { id: 'timetable', label: t('teachingSchedule') || 'Teaching Schedule', icon: CalendarDays },
     { id: 'grading', label: t('assignmentsGradebook') || 'Assignments & Gradebook', icon: ClipboardList },
-    { id: 'roster', label: currentUser.isClassTeacher ? `My ${currentUser.classTeacherOf} Roster` : (t('classRoster') || 'Class Roster'), icon: Users }
+    { id: 'roster', label: currentUser.isClassTeacher ? `${localizeGrade(currentUser.classTeacherOf)} ${t('classRoster')}` : (t('classRoster') || 'Class Roster'), icon: Users }
   ];
 
   const parentNavItems = [
@@ -78,9 +78,9 @@ export default function Sidebar({ onOpenCreateClass, onOpenJoinClass }) {
                 isStudent ? 'text-[#397257] dark:text-[#6ec493]' : isTeacher ? 'text-[#24706C] dark:text-[#4ecbc4]' : 'text-[#976C09] dark:text-[#F4C95D]'
               }`}>
                 {isStudent
-                  ? `${currentUser.grade} • Sec ${currentUser.section}`
+                  ? `${localizeGrade(currentUser.grade)} • ${t('sectionLabel') || 'Sec'} ${currentUser.section}`
                   : isTeacher
-                    ? currentUser.title?.split('&')[0]
+                    ? localizeText(currentUser.title?.split('&')[0])
                     : `Parent of ${currentUser.childName}`
                 }
               </p>

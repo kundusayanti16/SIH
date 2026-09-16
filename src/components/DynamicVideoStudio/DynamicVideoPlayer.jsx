@@ -33,7 +33,8 @@ import DynamicVideoCanvas from './DynamicVideoCanvas';
 import VisualSandbox from './VisualSandbox';
 import AskMomentDrawer from './AskMomentDrawer';
 import { useSchool } from '../../context/SchoolContext';
-import { VIDEO_LANGUAGES, translateVideoContent } from '../../utils/aiVideoEngine';
+import { useLanguage } from '../../context/LanguageContext';
+import { VIDEO_LANGUAGES, translateVideoContent, resolveTTSVoice, transliterateIndicToPhonetic } from '../../utils/aiVideoEngine';
 
 function formatTime(totalSeconds) {
   const secs = Math.max(0, Math.floor(totalSeconds || 0));
@@ -48,8 +49,10 @@ export default function DynamicVideoPlayer({
   onAssignToClassroom
 }) {
   const { currentUser, showToast, classrooms } = useSchool();
+  const { selectedLanguageCode, changeLanguage, t } = useLanguage();
   const [activeVideo, setActiveVideo] = useState(video);
-  const [currentLanguage, setCurrentLanguage] = useState(video?.language || 'en');
+  const [currentLanguage, setCurrentLanguage] = useState(video?.language || selectedLanguageCode || 'en');
+  const [voiceInfo, setVoiceInfo] = useState({ available: false, name: '' });
 
   // Presentation Modes: 'video' | 'sandbox'
   const [activePlayerView, setActivePlayerView] = useState('video');
@@ -72,10 +75,33 @@ export default function DynamicVideoPlayer({
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedClassId, setSelectedClassId] = useState('');
+  const [availableVoices, setAvailableVoices] = useState([]);
 
   const containerRef = useRef(null);
   const speechRef = useRef(null);
   const timerRef = useRef(null);
+  const speakTimeoutRef = useRef(null);
+
+  // Proactively load and listen for speechSynthesis voices
+  useEffect(() => {
+    const updateVoices = () => {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        const vList = window.speechSynthesis.getVoices();
+        if (vList && vList.length > 0) {
+          setAvailableVoices(vList);
+        }
+      }
+    };
+    updateVoices();
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = updateVoices;
+    }
+    return () => {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.onvoiceschanged = null;
+      }
+    };
+  }, []);
 
   // Keep activeVideo in sync if prop changes
   useEffect(() => {
@@ -129,47 +155,188 @@ export default function DynamicVideoPlayer({
   const displayHeadline = (isSimpleMode && currentScene?.simpleHeadline) ? currentScene.simpleHeadline : currentScene?.headline;
   const displayPoints = (isSimpleMode && currentScene?.simplePoints) ? currentScene.simplePoints : currentScene?.points;
   const displayNarration = (isSimpleMode && currentScene?.simpleNarration) ? currentScene.simpleNarration : currentScene?.narration;
+  const displayPhoneticNarration = (isSimpleMode && (currentScene?.simplePhoneticNarration || currentScene?.simpleNarration))
+    ? (currentScene.simplePhoneticNarration || transliterateIndicToPhonetic(currentScene.simpleNarration))
+    : (currentScene?.phoneticNarration || transliterateIndicToPhonetic(currentScene?.narration));
+
+  // Web Audio Context & Sound Synthesizer
+  const audioCtxRef = useRef(null);
+  const [audioUnlocked, setAudioUnlocked] = useState(false);
+
+  // Generates real physical acoustic chimes on scene transitions
+  const playSceneChime = () => {
+    try {
+      if (typeof window === 'undefined') return;
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      if (!audioCtxRef.current) {
+        audioCtxRef.current = new AudioCtx();
+      }
+      const ctx = audioCtxRef.current;
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
+      const now = ctx.currentTime;
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc1.type = 'sine';
+      osc2.type = 'triangle';
+      osc1.frequency.setValueAtTime(523.25, now);
+      osc1.frequency.exponentialRampToValueAtTime(659.25, now + 0.16);
+      osc2.frequency.setValueAtTime(261.63, now);
+
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc1.start(now);
+      osc2.start(now);
+      osc1.stop(now + 0.35);
+      osc2.stop(now + 0.35);
+    } catch (e) {
+      console.warn("Audio chime error:", e);
+    }
+  };
+
+  // Immediate sound unlock on user interaction
+  const unlockAndPlayAudio = () => {
+    setAudioUnlocked(true);
+    setIsMuted(false);
+    if (typeof window !== 'undefined') {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.resume();
+      }
+      playSceneChime();
+      speakCurrentScene(displayNarration);
+    }
+  };
 
   // Language change handler
   const handleLanguageChange = (langCode) => {
     setCurrentLanguage(langCode);
+    if (changeLanguage) {
+      changeLanguage(langCode);
+    }
     const translated = translateVideoContent(activeVideo, langCode);
     setActiveVideo(translated);
     const langObj = VIDEO_LANGUAGES.find(l => l.code === langCode);
     showToast(`🌐 Video language changed to ${langObj?.name || langCode} (${langObj?.nativeName})!`, 'info');
   };
 
+  // Sync video language when global language changes
+  useEffect(() => {
+    if (selectedLanguageCode && selectedLanguageCode !== currentLanguage) {
+      setCurrentLanguage(selectedLanguageCode);
+      const translated = translateVideoContent(activeVideo, selectedLanguageCode);
+      setActiveVideo(translated);
+    }
+  }, [selectedLanguageCode]);
+
   // Speech Synthesis narration handler
   const speakCurrentScene = (sceneText) => {
     if (!('speechSynthesis' in window)) return;
+    if (speakTimeoutRef.current) clearTimeout(speakTimeoutRef.current);
+
     window.speechSynthesis.cancel();
 
-    if (isMuted || !isPlaying) return;
+    if (isMuted || !isPlaying || !sceneText) return;
 
-    const utterance = new SpeechSynthesisUtterance(sceneText);
-    utterance.rate = playbackSpeed;
-    utterance.pitch = isSimpleMode ? 1.05 : 1.0;
+    // Small delay ensures cancel() cleanly completes and Chrome doesn't swallow the utterance
+    speakTimeoutRef.current = setTimeout(() => {
+      try {
+        if ('speechSynthesis' in window) window.speechSynthesis.resume();
 
-    const langObj = VIDEO_LANGUAGES.find(l => l.code === currentLanguage);
-    const targetSpeechLang = langObj?.speechLang || 'en-US';
-    utterance.lang = targetSpeechLang;
+        const langObj = VIDEO_LANGUAGES.find(l => l.code === currentLanguage) || VIDEO_LANGUAGES[0];
+        const targetSpeechLang = langObj?.speechLang || 'en-US';
 
-    // Pick matching voice for language
-    const voices = window.speechSynthesis.getVoices();
-    const prefix = targetSpeechLang.split('-')[0];
-    const matchedVoice = voices.find(v => v.lang.toLowerCase().startsWith(prefix.toLowerCase()));
-    if (matchedVoice) {
-      utterance.voice = matchedVoice;
-    }
+        const voices = availableVoices.length > 0 ? availableVoices : window.speechSynthesis.getVoices();
+        const resolution = resolveTTSVoice(currentLanguage, voices);
 
-    speechRef.current = utterance;
-    window.speechSynthesis.speak(utterance);
+        let textToSpeak = sceneText;
+        let voiceToUse = null;
+        let langToUse = 'en-US';
+
+        if (resolution.voice && resolution.isNative) {
+          // Native voice exists in browser for this language!
+          voiceToUse = resolution.voice;
+          langToUse = resolution.voice.lang || targetSpeechLang;
+          textToSpeak = sceneText;
+          setVoiceInfo({ available: true, name: resolution.voice.name });
+        } else {
+          // No native regional voice installed on client OS (e.g. Marathi/Bengali/Punjabi on Mac/Windows).
+          // Fall back to a neutral English/Indian-English voice.
+          // NEVER fall back to Hindi for non-Hindi languages.
+          const neutralVoice = voices.find(v => {
+            const vLang = (v.lang || '').toLowerCase();
+            return (vLang.startsWith('en') || vLang.includes('us')) && !vLang.startsWith('hi');
+          }) || voices.find(v => !v.lang?.toLowerCase().startsWith('hi')) || voices[0];
+
+          voiceToUse = neutralVoice;
+          langToUse = neutralVoice?.lang || 'en-US';
+          // Non-native voices produce 100% silence on Indic script characters.
+          // Transliterate to phonetic Latin text so the voice audibly speaks through speakers!
+          textToSpeak = displayPhoneticNarration || transliterateIndicToPhonetic(sceneText);
+          setVoiceInfo({ available: false, name: neutralVoice?.name || '' });
+        }
+
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+        if (voiceToUse) utterance.voice = voiceToUse;
+        utterance.lang = langToUse;
+        utterance.rate = playbackSpeed;
+        utterance.pitch = isSimpleMode ? 1.05 : 1.0;
+
+        utterance.onstart = () => {
+          setAudioUnlocked(true);
+          console.log("[TTS Started Playing]", { lang: currentLanguage, voice: utterance.voice?.name, text: textToSpeak.substring(0, 30) });
+        };
+
+        utterance.onend = () => {
+          console.log("[TTS Ended for scene]", currentSceneIndex);
+          // Advance to the next scene after a brief 800ms natural pause so voice narration continues smoothly for whole video
+          if (speakTimeoutRef.current) clearTimeout(speakTimeoutRef.current);
+          speakTimeoutRef.current = setTimeout(() => {
+            if (isPlaying && activePlayerView === 'video') {
+              setCurrentSceneIndex(curr => {
+                if (curr < scenes.length - 1) {
+                  return curr + 1;
+                } else {
+                  setIsPlaying(false);
+                  if (activeVideo?.quiz) {
+                    setShowQuiz(true);
+                  }
+                  return curr;
+                }
+              });
+              setPlaybackTime(0);
+            }
+          }, 800);
+        };
+
+        utterance.onerror = (e) => {
+          console.warn("[DynamicVideoPlayer TTS Error]", e.error);
+        };
+
+        speechRef.current = utterance;
+        window.speechSynthesis.speak(utterance);
+      } catch (err) {
+        console.error("Speech synthesis failed:", err);
+      }
+    }, 40);
   };
 
   // When scene changes, mode changes, or playback changes
   useEffect(() => {
     setPlaybackTime(0);
     if (isPlaying && displayNarration && activePlayerView === 'video') {
+      if (!isMuted) {
+        playSceneChime();
+      }
       speakCurrentScene(displayNarration);
     } else {
       if ('speechSynthesis' in window) window.speechSynthesis.cancel();
@@ -177,8 +344,21 @@ export default function DynamicVideoPlayer({
 
     return () => {
       if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      if (speakTimeoutRef.current) clearTimeout(speakTimeoutRef.current);
     };
-  }, [currentSceneIndex, isPlaying, isMuted, playbackSpeed, currentLanguage, activeVideo, isSimpleMode, activePlayerView]);
+  }, [currentSceneIndex, isPlaying, isMuted, playbackSpeed, currentLanguage, isSimpleMode, activePlayerView, availableVoices]);
+
+  // Chromium 15s SpeechSynthesis pause workaround
+  useEffect(() => {
+    if (!isPlaying || isMuted) return;
+    const heartbeat = setInterval(() => {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window && window.speechSynthesis.speaking) {
+        window.speechSynthesis.pause();
+        window.speechSynthesis.resume();
+      }
+    }, 8000);
+    return () => clearInterval(heartbeat);
+  }, [isPlaying, isMuted]);
 
   // Main playback timer loop
   useEffect(() => {
@@ -475,7 +655,12 @@ Explanation: ${activeVideo.quiz.explanation}
           <VisualSandbox video={activeVideo} language={currentLanguage} />
         </div>
       ) : (
-        <div className="relative flex-1 min-h-[380px] sm:min-h-[440px] flex items-center justify-center overflow-hidden">
+        <div 
+          onClick={() => {
+            if (!audioUnlocked) unlockAndPlayAudio();
+          }}
+          className="relative flex-1 min-h-[380px] sm:min-h-[440px] flex items-center justify-center overflow-hidden cursor-pointer"
+        >
           {/* Real-time Dynamic 60fps Canvas Animation */}
           <DynamicVideoCanvas
             scene={currentScene}
@@ -483,6 +668,22 @@ Explanation: ${activeVideo.quiz.explanation}
             playbackProgress={playbackTime / sceneDuration}
             theme={activeVideo.theme || 'emerald'}
           />
+
+          {/* Prominent Tap to Enable Audio Narration Banner if browser blocked autoplay */}
+          {!audioUnlocked && isPlaying && (
+            <div 
+              onClick={(e) => {
+                e.stopPropagation();
+                unlockAndPlayAudio();
+              }}
+              className="absolute top-4 left-1/2 -translate-x-1/2 z-30 cursor-pointer animate-pulse shadow-2xl rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-amber-400 p-[2px] hover:scale-105 transition-transform"
+            >
+              <div className="flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-[#0F1E17]/95 text-white font-bold text-xs sm:text-sm hover:bg-[#0F1E17]/85 transition-colors">
+                <Volume2 className="w-4 h-4 text-amber-300 animate-spin" />
+                <span>🔊 {t('enableAudioPrompt', 'Tap to Unmute & Enable Voice Narration')}</span>
+              </div>
+            </div>
+          )}
 
           {/* Dynamic Compact Concept HUD Overlay (Non-intrusive) */}
           <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-20 max-w-[260px] sm:max-w-[320px] pointer-events-auto transition-all duration-300">
@@ -551,7 +752,7 @@ Explanation: ${activeVideo.quiz.explanation}
             <div className="absolute bottom-4 left-4 right-4 text-center z-10 pointer-events-none">
               <div className="inline-block max-w-2xl px-5 py-2.5 rounded-2xl bg-black/85 backdrop-blur-xl border border-white/20 shadow-2xl text-xs sm:text-sm font-semibold text-[#F6F8F3] leading-relaxed">
                 <span className="text-[#5F9F7A] mr-1.5 font-bold">
-                  {VIDEO_LANGUAGES.find(l => l.code === currentLanguage)?.flag} {isSimpleMode ? '🧸 Story Voiceover:' : '● Live Voiceover:'}
+                  {VIDEO_LANGUAGES.find(l => l.code === currentLanguage)?.flag} {isSimpleMode ? (t('storyModeLabel', '🧸 Story Voiceover:')) : (t('voiceNativeActive', '● Live Voiceover:'))}
                 </span>
                 <span>{displayNarration}</span>
               </div>
@@ -568,15 +769,15 @@ Explanation: ${activeVideo.quiz.explanation}
                       <HelpCircle className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-sm text-white">Comprehension Quick Check</h3>
-                      <p className="text-[11px] text-white/70">Test what you learned from this video</p>
+                      <h3 className="font-bold text-sm text-white">{t('quizTitle', 'Comprehension Quick Check')}</h3>
+                      <p className="text-[11px] text-white/70">{t('quizSubtitle', 'Test what you learned from this video')}</p>
                     </div>
                   </div>
                   <button
                     onClick={() => setShowQuiz(false)}
                     className="text-white/60 hover:text-white text-xs font-bold px-2 py-1"
                   >
-                    Skip
+                    {t('quizSkipBtn', 'Skip')}
                   </button>
                 </div>
 
@@ -622,7 +823,7 @@ Explanation: ${activeVideo.quiz.explanation}
                     onClick={() => setQuizSubmitted(true)}
                     className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#5F9F7A] to-[#3AA6A0] hover:from-[#4D8A67] hover:to-[#2C8782] disabled:opacity-50 text-white font-bold text-xs shadow-md transition-all"
                   >
-                    Submit Answer
+                    {t('quizSubmitBtn', 'Submit Answer')}
                   </button>
                 ) : (
                   <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 space-y-2">
@@ -694,7 +895,10 @@ Explanation: ${activeVideo.quiz.explanation}
             {/* Left Controls: Play/Pause/Rewind10/Forward10/Restart/Mute */}
             <div className="flex items-center gap-2 sm:gap-3">
               <button
-                onClick={() => setIsPlaying(!isPlaying)}
+                onClick={() => {
+                  unlockAndPlayAudio();
+                  setIsPlaying(!isPlaying);
+                }}
                 className="w-10 h-10 rounded-2xl bg-[#5F9F7A] hover:bg-[#4D8A67] text-white flex items-center justify-center shadow-lg shadow-[#5F9F7A]/30 transition-transform active:scale-95 cursor-pointer"
               >
                 {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
@@ -728,7 +932,15 @@ Explanation: ${activeVideo.quiz.explanation}
 
               {/* Voice Mute / Narration Toggle */}
               <button
-                onClick={() => setIsMuted(!isMuted)}
+                onClick={() => {
+                  const nextMuted = !isMuted;
+                  setIsMuted(nextMuted);
+                  if (!nextMuted) {
+                    unlockAndPlayAudio();
+                  } else {
+                    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+                  }
+                }}
                 className={`p-2 rounded-xl transition-colors cursor-pointer ${isMuted ? 'bg-rose-500/30 text-rose-300' : 'bg-white/10 hover:bg-white/20 text-white'
                   }`}
                 title={isMuted ? 'Unmute Audio Narration' : 'Mute Audio Narration'}

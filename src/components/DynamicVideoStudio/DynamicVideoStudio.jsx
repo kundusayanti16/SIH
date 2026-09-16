@@ -26,13 +26,13 @@ import { useLanguage } from '../../context/LanguageContext';
 
 export default function DynamicVideoStudio({ initialTopic = '' }) {
   const { currentUser, showToast, addAnnouncement, classrooms } = useSchool();
-  const { currentLang, activeLangObj } = useLanguage();
+  const { currentLang, selectedLanguageCode, changeLanguage, activeLangObj, t } = useLanguage();
 
   const [topicInput, setTopicInput] = useState(initialTopic || '');
   const [gradeLevel, setGradeLevel] = useState(currentUser?.grade || 'Class 10');
-  const [durationMinutes, setDurationMinutes] = useState(5);
+  const [durationMinutes, setDurationMinutes] = useState(1);
   const [theme, setTheme] = useState('emerald');
-  const [language, setLanguage] = useState(activeLangObj?.code || currentLang || 'en');
+  const [language, setLanguage] = useState(selectedLanguageCode || currentLang || 'en');
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationStep, setGenerationStep] = useState('');
@@ -42,26 +42,45 @@ export default function DynamicVideoStudio({ initialTopic = '' }) {
 
   // Saved / Recent Generated Videos
   const [recentVideos, setRecentVideos] = useState(() => {
-    const initialLang = currentLang || 'en';
+    const initialLang = selectedLanguageCode || currentLang || 'en';
     return [
-      generateDynamicVideo("Photosynthesis", { theme: "emerald", durationMinutes: 5, language: initialLang }),
-      generateDynamicVideo("Black Holes", { theme: "cosmos", durationMinutes: 8, language: initialLang }),
-      generateDynamicVideo("Newton's Laws", { theme: "tech", durationMinutes: 10, language: initialLang })
+      generateDynamicVideo("Photosynthesis", { theme: "emerald", durationMinutes: 1, language: initialLang }),
+      generateDynamicVideo("Black Holes", { theme: "cosmos", durationMinutes: 1, language: initialLang }),
+      generateDynamicVideo("Newton's Laws", { theme: "tech", durationMinutes: 1, language: initialLang })
     ];
   });
 
   // Active Video (Default to first video so user always has a working video on screen)
   const [activeVideo, setActiveVideo] = useState(() => {
-    const initialLang = currentLang || 'en';
-    return generateDynamicVideo(initialTopic || "Photosynthesis", { theme: "emerald", durationMinutes: 5, language: initialLang });
+    const initialLang = selectedLanguageCode || currentLang || 'en';
+    return generateDynamicVideo(initialTopic || "Photosynthesis", { theme: "emerald", durationMinutes: 1, language: initialLang });
   });
 
-  // Keep studio language in sync when global language changes
+  // Keep studio language and active videos in sync when global language changes
   useEffect(() => {
-    if (currentLang) {
-      setLanguage(currentLang);
-    }
-  }, [currentLang]);
+    const targetLang = selectedLanguageCode || currentLang || 'en';
+    setLanguage(targetLang);
+
+    // Immediately translate/regenerate current video to new global language
+    setActiveVideo(prev => {
+      if (!prev) return prev;
+      return generateDynamicVideo(prev.topic, {
+        gradeLevel: prev.gradeLevel,
+        durationMinutes: prev.durationMinutes,
+        theme: prev.theme,
+        language: targetLang
+      });
+    });
+
+    setRecentVideos(prevList => {
+      return prevList.map(v => generateDynamicVideo(v.topic, {
+        gradeLevel: v.gradeLevel,
+        durationMinutes: v.durationMinutes,
+        theme: v.theme,
+        language: targetLang
+      }));
+    });
+  }, [selectedLanguageCode, currentLang]);
 
   // Handle prefilled or initial topic if provided
   useEffect(() => {
@@ -78,23 +97,25 @@ export default function DynamicVideoStudio({ initialTopic = '' }) {
       setTopicInput(topicToUse);
     }
 
+    const activeLangToUse = selectedLanguageCode || language || 'en';
+
     setIsGenerating(true);
     setGenerationProgress(20);
-    setGenerationStep('Deconstructing academic ontology & core concepts...');
+    setGenerationStep(t('generatingStep1', 'Deconstructing academic ontology & core concepts...'));
 
     setTimeout(() => {
       setGenerationProgress(50);
-      setGenerationStep('Synthesizing 60fps vector physics & biological simulations...');
+      setGenerationStep(t('generatingStep2', 'Synthesizing 60fps vector physics & biological simulations...'));
     }, 350);
 
     setTimeout(() => {
       setGenerationProgress(80);
-      setGenerationStep('Composing synchronized voice narration & multilingual subtitles...');
+      setGenerationStep(t('generatingStep3', 'Composing synchronized voice narration & multilingual subtitles...'));
     }, 700);
 
     setTimeout(() => {
       setGenerationProgress(95);
-      setGenerationStep('Assembling interactive hotspots & comprehension check...');
+      setGenerationStep(t('generatingStep4', 'Assembling interactive hotspots & comprehension check...'));
     }, 1000);
 
     setTimeout(() => {
@@ -103,13 +124,13 @@ export default function DynamicVideoStudio({ initialTopic = '' }) {
           gradeLevel,
           durationMinutes: parseInt(durationMinutes, 10) || 5,
           theme,
-          language
+          language: activeLangToUse
         });
 
         if (generated) {
           setRecentVideos(prev => [generated, ...prev.filter(v => v.id !== generated.id)]);
           setActiveVideo(generated);
-          showToast(`🎉 Interactive animated video created for "${generated.topic}"!`, 'success');
+          showToast(`🎉 Interactive animated video created for "${generated.topic}" in ${activeLangObj?.nativeName || activeLangToUse}!`, 'success');
           setTimeout(() => {
             playerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }, 80);
@@ -377,7 +398,7 @@ export default function DynamicVideoStudio({ initialTopic = '' }) {
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-[#24332C] dark:text-[#EAF2ED] flex items-center gap-1.5">
               <Palette className="w-3.5 h-3.5 text-[#5F9F7A]" />
-              <span>Visual Art Style</span>
+              <span>{t('selectThemeLabel', 'Visual Art Style')}</span>
             </label>
             <select
               value={theme}
@@ -396,11 +417,15 @@ export default function DynamicVideoStudio({ initialTopic = '' }) {
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-[#24332C] dark:text-[#EAF2ED] flex items-center gap-1.5">
               <Globe className="w-3.5 h-3.5 text-[#5F9F7A]" />
-              <span>Narration & Video Language</span>
+              <span>{t('selectLanguageLabel', 'Narration & Video Language')}</span>
             </label>
             <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
+              value={selectedLanguageCode || language}
+              onChange={(e) => {
+                const newLang = e.target.value;
+                setLanguage(newLang);
+                changeLanguage(newLang);
+              }}
               className="w-full bg-[#F6F8F3] dark:bg-[#0C1411] border border-[#E2E8DE] dark:border-[#22382E] rounded-xl px-3 py-2 text-xs font-medium text-[#24332C] dark:text-[#EAF2ED] outline-none focus:border-[#5F9F7A]"
             >
               {VIDEO_LANGUAGES.map((lang) => (

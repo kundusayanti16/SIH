@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { SchoolProvider, useSchool } from './context/SchoolContext';
-import { LanguageProvider } from './context/LanguageContext';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { ThemeProvider } from './context/ThemeContext';
 import AuthLanding from './components/AuthLanding';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
+import LanguageSelector from './components/LanguageSelector';
 import ToastContainer from './components/ToastContainer';
 import CreateClassModal from './components/CreateClassModal';
 import JoinClassModal from './components/JoinClassModal';
@@ -37,6 +38,7 @@ function MainApp() {
     setActiveClassroomId,
     studentGradeClassrooms
   } = useSchool();
+  const { t, localizeGrade } = useLanguage();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
@@ -118,8 +120,8 @@ function MainApp() {
               {activeTab === 'assignments' && <AssignmentsView />}
               {activeTab === 'live-classes' && (
                 <div className="space-y-6">
-                  <h1 className="text-2xl font-extrabold text-[#24332C] dark:text-[#EAF2ED]">Live Virtual Lectures</h1>
-                  <p className="text-xs text-[#718078] dark:text-[#95ADA0]">Join real-time video lectures for your {currentUser.grade} subjects</p>
+                  <h1 className="text-2xl font-extrabold text-[#24332C] dark:text-[#EAF2ED]">{t('sideLiveClasses') || 'Live Virtual Lectures'}</h1>
+                  <p className="text-xs text-[#718078] dark:text-[#95ADA0]">{t('studentWelcomeDesc') || `Join real-time video lectures for your ${localizeGrade(currentUser.grade)} subjects`}</p>
                   <DiscoverClasses onOpenJoinCodeModal={() => setShowJoinModal(true)} />
                 </div>
               )}
@@ -160,6 +162,9 @@ function MainApp() {
           )}
         </main>
       </div>
+
+      {/* Floating Language Switcher for instant 1-click global language change anywhere */}
+      <LanguageSelector variant="floating" />
 
       {/* Global Modals & Notifications */}
       <CreateClassModal

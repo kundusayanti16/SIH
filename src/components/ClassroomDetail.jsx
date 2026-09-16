@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useSchool } from '../context/SchoolContext';
+import { useLanguage } from '../context/LanguageContext';
 import LiveClassRoom from './LiveClassRoom';
 import { 
   ArrowLeft, 
@@ -36,6 +37,8 @@ export default function ClassroomDetail({ classroom, onBack, onLaunchVideoStudio
     toggleLiveClass,
     students
   } = useSchool();
+
+  const { t, localizeSubject, localizeGrade, localizeText } = useLanguage();
 
   const [activeTab, setActiveTab] = useState('stream'); // 'stream' | 'classwork' | 'people' | 'live'
   const [inLiveSession, setInLiveSession] = useState(false);
@@ -116,11 +119,11 @@ export default function ClassroomDetail({ classroom, onBack, onLaunchVideoStudio
           className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white hover:bg-[#F6F8F3] text-[#24332C] text-xs font-semibold border border-[#E2E8DE] shadow-sm transition-colors"
         >
           <ArrowLeft className="w-4 h-4 text-[#5F9F7A]" />
-          <span>Back to Dashboard</span>
+          <span>{t('backToDashboard') || 'Back to Dashboard'}</span>
         </button>
 
         <div className="flex items-center gap-2 text-xs text-[#718078]">
-          <span>{classroom.grade}</span>
+          <span>{localizeGrade(classroom.grade)}</span>
           <span>•</span>
           <span>Sec {classroom.section}</span>
           <span>•</span>
@@ -139,24 +142,24 @@ export default function ClassroomDetail({ classroom, onBack, onLaunchVideoStudio
           <div className="max-w-2xl">
             <div className="flex flex-wrap items-center gap-2.5 mb-3">
               <span className="px-3 py-1 rounded-full bg-black/25 backdrop-blur-md border border-white/20 text-xs font-bold uppercase tracking-wider">
-                {classroom.grade} • Sec {classroom.section}
+                {localizeGrade(classroom.grade)} • {t('sectionLabel', 'Sec')} {classroom.section}
               </span>
               {classroom.isClassTeacherClass && (
                 <span className="px-3 py-1 rounded-full bg-[#F4C95D] text-[#24332C] text-xs font-bold flex items-center gap-1.5 shadow-sm">
                   <Star className="w-3.5 h-3.5 fill-[#24332C] text-[#24332C]" />
-                  <span>Class Teacher's Subject</span>
+                  <span>{t('classTeacherNoticeBadge') || "Class Teacher's Subject"}</span>
                 </span>
               )}
               <span className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-xs font-semibold">
-                {classroom.room}
+                {localizeText(classroom.room)}
               </span>
             </div>
 
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight">
-              {classroom.title}
+              {localizeSubject(classroom.title)}
             </h1>
             <p className="mt-2 text-sm sm:text-base text-white/90 font-normal leading-relaxed">
-              {classroom.description}
+              {localizeText(classroom.description)}
             </p>
 
             {/* Teacher Pill */}
@@ -168,7 +171,7 @@ export default function ClassroomDetail({ classroom, onBack, onLaunchVideoStudio
               />
               <div>
                 <div className="text-xs font-bold">{classroom.teacherName}</div>
-                <div className="text-[11px] text-white/80">{classroom.teacherRole}</div>
+                <div className="text-[11px] text-white/80">{localizeText(classroom.teacherRole)}</div>
               </div>
             </div>
           </div>
@@ -183,7 +186,7 @@ export default function ClassroomDetail({ classroom, onBack, onLaunchVideoStudio
                   title="Generate dynamic animated explainer video for this subject"
                 >
                   <Wand2 className="w-4 h-4 text-[#F4C95D]" />
-                  <span>AI Topic Video</span>
+                  <span>{t('sideStudio') || 'AI Topic Video'}</span>
                 </button>
               )}
 
@@ -197,13 +200,13 @@ export default function ClassroomDetail({ classroom, onBack, onLaunchVideoStudio
                 className="flex items-center gap-2.5 px-6 py-3.5 rounded-2xl bg-white text-[#397257] hover:bg-slate-50 font-extrabold text-sm shadow-md hover:scale-105 active:scale-95 transition-all"
               >
                 <Video className="w-5 h-5 text-[#5F9F7A]" />
-                <span>{isTeacher ? "Launch Live Virtual Class" : "Enter Live Lecture Room"}</span>
+                <span>{isTeacher ? (t('launchLiveClass') || "Launch Live Virtual Class") : (t('joinLiveLecture') || "Enter Live Lecture Room")}</span>
               </button>
             </div>
 
             <div className="text-[11px] text-white/90 flex items-center gap-2">
               <Clock className="w-3.5 h-3.5" />
-              <span>{classroom.schedule}</span>
+              <span>{localizeText(classroom.schedule)}</span>
             </div>
           </div>
         </div>
@@ -212,9 +215,9 @@ export default function ClassroomDetail({ classroom, onBack, onLaunchVideoStudio
       {/* Classroom Inner Navigation Tabs */}
       <div className="flex border-b border-[#E2E8DE] gap-2 overflow-x-auto pb-px">
         {[
-          { id: 'stream', label: 'Class Stream & Discussions', icon: MessageSquare },
-          { id: 'classwork', label: 'Classwork & Notes', icon: FileText, count: classroom.assignments?.length },
-          { id: 'people', label: 'Faculty & Classmates', icon: Users, count: enrolledStudents.length }
+          { id: 'stream', label: t('tabStream') || 'Class Stream & Discussions', icon: MessageSquare },
+          { id: 'classwork', label: t('tabClasswork') || 'Classwork & Notes', icon: FileText, count: classroom.assignments?.length },
+          { id: 'people', label: t('tabPeople') || 'Faculty & Classmates', icon: Users, count: enrolledStudents.length }
         ].map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;

@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useSchool } from '../context/SchoolContext';
+import { useLanguage } from '../context/LanguageContext';
 import { AVAILABLE_GRADES, AVAILABLE_SECTIONS, SUBJECT_OPTIONS } from '../data/mockData';
 import { X, PlusCircle, Sparkles, BookOpen, Layers, Clock, MapPin, AlignLeft } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 export default function CreateClassModal({ isOpen, onClose }) {
   const { currentUser, createClassroom, enterClassroom } = useSchool();
+  const { t, localizeSubject, localizeGrade } = useLanguage();
 
   const [grade, setGrade] = useState(currentUser?.gradeAssigned?.split(',')[0]?.trim() || "Class 6");
   const [section, setSection] = useState("A");
@@ -62,7 +64,7 @@ export default function CreateClassModal({ isOpen, onClose }) {
               <PlusCircle className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-[#24332C]">Create New Classroom</h2>
+              <h2 className="text-lg font-bold text-[#24332C]">{t('createClassroom') || 'Create New Classroom'}</h2>
               <p className="text-xs text-[#718078]">Classroom will be automatically accessible to targeted grade students</p>
             </div>
           </div>
@@ -91,7 +93,7 @@ export default function CreateClassModal({ isOpen, onClose }) {
                 required
               >
                 {AVAILABLE_GRADES.map(g => (
-                  <option key={g} value={g}>{g}</option>
+                  <option key={g} value={g}>{localizeGrade(g)}</option>
                 ))}
               </select>
             </div>
@@ -126,7 +128,7 @@ export default function CreateClassModal({ isOpen, onClose }) {
               required
             >
               {SUBJECT_OPTIONS.map(sub => (
-                <option key={sub} value={sub}>{sub}</option>
+                <option key={sub} value={sub}>{localizeSubject(sub)}</option>
               ))}
             </select>
           </div>
@@ -204,13 +206,13 @@ export default function CreateClassModal({ isOpen, onClose }) {
               onClick={onClose}
               className="px-4 py-2.5 rounded-xl bg-[#F6F8F3] hover:bg-[#E7F2EB] text-[#718078] text-xs font-semibold transition-colors"
             >
-              Cancel
+              {t('cancel') || 'Cancel'}
             </button>
             <button
               type="submit"
               className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#5F9F7A] to-[#397257] hover:from-[#4D8A67] hover:to-[#2D5B45] text-white text-xs font-bold shadow-md transition-all active:scale-95"
             >
-              Publish Classroom
+              {t('createClassroom') || 'Publish Classroom'}
             </button>
           </div>
         </form>
