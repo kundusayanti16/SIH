@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useSchool } from '../context/SchoolContext';
+import { useLanguage } from '../context/LanguageContext';
 import ThemeToggle from './ThemeToggle';
+import LanguageSelector from './LanguageSelector';
 import {
   School,
   PlusCircle,
@@ -94,6 +96,9 @@ export default function Navbar({ onOpenCreateClass, onOpenJoinClass }) {
               <span className="sm:hidden">Join</span>
             </button>
           )}
+
+          {/* Language Switcher Button */}
+          <LanguageSelector variant="button" />
 
           {/* Theme Toggle Button */}
           <ThemeToggle variant="button" />
