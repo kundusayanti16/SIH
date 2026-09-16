@@ -67,7 +67,7 @@ export default function LanguageSelector({
     }
   };
 
-  const filteredLanguages = supportedLanguages.filter(l => 
+  const filteredLanguages = (supportedLanguages || []).filter(l => 
     l.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     l.nativeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     l.code.toLowerCase().includes(searchQuery.toLowerCase())
@@ -85,7 +85,7 @@ export default function LanguageSelector({
           onClick={() => setIsOpen(!isOpen)}
           type="button"
           aria-label="Change Website Language"
-          title={`Current Language: ${activeLangObj.nativeName} (${activeLangObj.name}) - Click to Change`}
+          title={`Current Language: ${activeLangObj?.nativeName || 'English'} - Click to Change`}
           className="group relative flex items-center gap-2 px-4 py-2.5 rounded-full bg-gradient-to-r from-[#397257] via-[#5F9F7A] to-[#3AA6A0] text-white shadow-xl shadow-[#5F9F7A]/35 hover:shadow-2xl hover:shadow-[#5F9F7A]/50 hover:scale-105 active:scale-95 transition-all duration-300 border border-white/30 backdrop-blur-xl"
         >
           <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
@@ -93,8 +93,8 @@ export default function LanguageSelector({
           </div>
           
           <div className="flex items-center gap-1.5 font-extrabold text-xs">
-            <span className="text-base leading-none">{activeLangObj.flag}</span>
-            <span className="tracking-wide">{activeLangObj.nativeName}</span>
+            <span className="text-base leading-none">{activeLangObj?.flag || '🇮🇳'}</span>
+            <span className="tracking-wide">{activeLangObj?.nativeName || 'Language'}</span>
           </div>
 
           <span className="w-2 h-2 rounded-full bg-[#F4C95D] animate-ping" />
@@ -175,7 +175,7 @@ export default function LanguageSelector({
               <span className="flex items-center gap-1">
                 <Sparkles className="w-3 h-3 text-[#DDAA2E]" /> Live Multilingual Sync
               </span>
-              <span className="font-semibold">{supportedLanguages.length} Languages</span>
+              <span className="font-semibold">{supportedLanguages?.length || 0} Languages</span>
             </div>
           </div>
         )}
@@ -190,19 +190,19 @@ export default function LanguageSelector({
         <button
           onClick={() => setIsOpen(!isOpen)}
           type="button"
-          className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-white/70 dark:bg-[#14221C] border border-[#E2E8DE] dark:border-[#22382E] text-xs font-semibold text-[#24332C] dark:text-[#EAF2ED] hover:border-[#5F9F7A]/50 transition-all shadow-sm"
+          className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-[#F6F8F3] dark:bg-[#162720] border border-[#E2E8DE] dark:border-[#253D33] text-xs font-bold text-[#24332C] dark:text-[#EAF2ED] hover:border-[#5F9F7A]/60 transition-all shadow-sm"
         >
           <div className="flex items-center gap-2">
             <Globe className="w-4 h-4 text-[#5F9F7A]" />
-            <span>{activeLangObj.nativeName}</span>
-            <span className="text-[10px] text-[#718078] dark:text-[#95ADA0]">({activeLangObj.name})</span>
+            <span>{activeLangObj?.nativeName || 'English'}</span>
+            <span className="text-[10px] text-[#718078] dark:text-[#95ADA0]">({activeLangObj?.name || 'English'})</span>
           </div>
           <ChevronDown className={`w-3.5 h-3.5 text-[#718078] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
         </button>
 
         {isOpen && (
-          <div className="absolute bottom-full mb-2 left-0 w-64 rounded-2xl bg-white dark:bg-[#14221C] border border-[#E2E8DE] dark:border-[#22382E] shadow-2xl p-2.5 z-50 animate-in fade-in slide-from-bottom-2 duration-150">
-            <div className="text-[10px] font-extrabold uppercase tracking-wider text-[#397257] dark:text-[#86BCA0] px-2 py-1 mb-1 border-b border-[#E2E8DE] dark:border-[#22382E]">
+          <div className="absolute bottom-full mb-2 left-0 w-64 rounded-2xl bg-white dark:bg-[#162720] border border-[#E2E8DE] dark:border-[#253D33] shadow-2xl p-2.5 z-50 animate-in fade-in slide-in-from-bottom-2 duration-150">
+            <div className="text-[10px] font-extrabold uppercase tracking-wider text-[#397257] dark:text-[#6ec493] px-2 py-1 mb-1 border-b border-[#E2E8DE] dark:border-[#253D33]">
               {t('navLanguages') || 'Select Language'}
             </div>
             <div className="max-h-52 overflow-y-auto space-y-1">
@@ -212,10 +212,10 @@ export default function LanguageSelector({
                   <button
                     key={lang.code}
                     onClick={() => handleSelectLanguage(lang.code)}
-                    className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all ${
+                    className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                       isSelected
-                        ? 'bg-[#E7F2EB] dark:bg-[#1e2d27] text-[#397257] dark:text-[#86BCA0] font-bold'
-                        : 'text-[#24332C] dark:text-[#EAF2ED] hover:bg-[#F6F8F3] dark:hover:bg-[#1a2b23]'
+                        ? 'bg-[#E7F2EB] dark:bg-[#152e23] text-[#397257] dark:text-[#6ec493] font-black'
+                        : 'text-[#24332C] dark:text-[#EAF2ED] hover:bg-[#F6F8F3] dark:hover:bg-[#1f382d]'
                     }`}
                   >
                     <span className="flex items-center gap-2">
@@ -223,7 +223,7 @@ export default function LanguageSelector({
                       <span>{lang.nativeName}</span>
                       <span className="text-[10px] text-[#718078] dark:text-[#95ADA0]">({lang.name})</span>
                     </span>
-                    {isSelected && <Check className="w-3.5 h-3.5 text-[#397257] dark:text-[#86BCA0]" />}
+                    {isSelected && <Check className="w-3.5 h-3.5 text-[#397257] dark:text-[#6ec493]" />}
                   </button>
                 );
               })}
@@ -241,25 +241,25 @@ export default function LanguageSelector({
         onClick={() => setIsOpen(!isOpen)}
         type="button"
         aria-label="Change Website Language"
-        title={`Change Language (Current: ${activeLangObj.nativeName})`}
-        className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-white dark:bg-[#14221C] hover:bg-[#F6F8F3] dark:hover:bg-[#1A2D25] text-[#24332C] dark:text-[#EAF2ED] border border-[#E2E8DE] dark:border-[#22382E] text-xs font-bold transition-all shadow-sm hover:border-[#5F9F7A]/60 active:scale-95 group"
+        title={`Change Language (Current: ${activeLangObj?.nativeName || 'English'})`}
+        className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-white dark:bg-[#162720] hover:bg-[#F6F8F3] dark:hover:bg-[#1f382d] text-[#24332C] dark:text-[#EAF2ED] border border-[#E2E8DE] dark:border-[#253D33] text-xs font-bold transition-all shadow-sm hover:border-[#5F9F7A]/60 active:scale-95 group"
       >
         <Globe className="w-4 h-4 text-[#5F9F7A] group-hover:rotate-45 transition-transform duration-300" />
-        <span className="text-sm leading-none">{activeLangObj.flag}</span>
-        <span className="font-extrabold tracking-wide">{activeLangObj.nativeName}</span>
+        <span className="text-sm leading-none">{activeLangObj?.flag || '🇮🇳'}</span>
+        <span className="font-extrabold tracking-wide">{activeLangObj?.nativeName || 'Language'}</span>
         <ChevronDown className={`w-3.5 h-3.5 text-[#718078] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {/* Language Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-64 sm:w-72 rounded-3xl bg-white/95 dark:bg-[#14221C]/95 backdrop-blur-2xl border border-[#E2E8DE] dark:border-[#22382E] shadow-2xl p-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-          <div className="flex items-center justify-between px-2 pb-2 mb-2 border-b border-[#E2E8DE] dark:border-[#22382E]">
-            <span className="text-[10px] font-black uppercase tracking-wider text-[#397257] dark:text-[#86BCA0] flex items-center gap-1.5">
+        <div className="absolute right-0 mt-2 w-64 sm:w-72 rounded-3xl bg-white/95 dark:bg-[#162720]/95 backdrop-blur-2xl border border-[#E2E8DE] dark:border-[#253D33] shadow-2xl p-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+          <div className="flex items-center justify-between px-2 pb-2 mb-2 border-b border-[#E2E8DE] dark:border-[#253D33]">
+            <span className="text-[10px] font-black uppercase tracking-wider text-[#397257] dark:text-[#6ec493] flex items-center gap-1.5">
               <Languages className="w-3.5 h-3.5" />
               {t('navLanguages') || 'Platform Languages'}
             </span>
-            <span className="text-[10px] bg-[#E7F2EB] dark:bg-[#1e2d27] text-[#397257] dark:text-[#86BCA0] px-2 py-0.5 rounded-full font-bold">
-              {supportedLanguages.length} Indian Languages
+            <span className="text-[10px] bg-[#E7F2EB] dark:bg-[#152e23] text-[#397257] dark:text-[#6ec493] px-2 py-0.5 rounded-full font-bold">
+              {supportedLanguages?.length || 0} Languages
             </span>
           </div>
 
@@ -272,7 +272,7 @@ export default function LanguageSelector({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search language..."
-              className="w-full pl-8 pr-2.5 py-1.5 text-xs rounded-xl bg-[#F6F8F3] dark:bg-[#0C1411] border border-[#E2E8DE] dark:border-[#22382E] text-[#24332C] dark:text-[#EAF2ED] focus:outline-none focus:ring-1 focus:ring-[#5F9F7A]"
+              className="w-full pl-8 pr-2.5 py-1.5 text-xs rounded-xl bg-[#F6F8F3] dark:bg-[#0C1411] border border-[#E2E8DE] dark:border-[#253D33] text-[#24332C] dark:text-[#EAF2ED] focus:outline-none focus:ring-1 focus:ring-[#5F9F7A]"
             />
           </div>
 
@@ -287,7 +287,7 @@ export default function LanguageSelector({
                   className={`w-full flex items-center justify-between px-3 py-2 rounded-2xl text-xs transition-all ${
                     isSelected
                       ? 'bg-gradient-to-r from-[#5F9F7A] to-[#397257] text-white font-bold shadow-md shadow-[#5F9F7A]/25'
-                      : 'text-[#24332C] dark:text-[#EAF2ED] hover:bg-[#F6F8F3] dark:hover:bg-[#1a2b23]'
+                      : 'text-[#24332C] dark:text-[#EAF2ED] hover:bg-[#F6F8F3] dark:hover:bg-[#1f382d]'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
