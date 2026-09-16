@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { useSchool } from '../context/SchoolContext';
 import ThemeToggle from './ThemeToggle';
-import { 
-  School, 
-  PlusCircle, 
-  KeyRound, 
-  Bell, 
-  LogOut, 
-  User, 
-  ChevronDown, 
-  Sparkles, 
-  CheckCircle, 
+import {
+  School,
+  PlusCircle,
+  KeyRound,
+  Bell,
+  LogOut,
+  User,
+  ChevronDown,
+  Sparkles,
+  CheckCircle,
   BookOpen,
   GraduationCap
 } from 'lucide-react';
@@ -29,10 +29,10 @@ export default function Navbar({ onOpenCreateClass, onOpenJoinClass }) {
   return (
     <nav className="sticky top-0 z-40 bg-white/95 backdrop-blur-xl border-b border-[#E2E8DE] px-4 sm:px-6 py-3 shadow-sm">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
-        
+
         {/* Left: Brand Logo & Current Portal Badge */}
         <div className="flex items-center gap-4">
-          <button 
+          <button
             onClick={() => {
               setActiveTab('overview');
               setActiveClassroomId(null);
@@ -47,22 +47,21 @@ export default function Navbar({ onOpenCreateClass, onOpenJoinClass }) {
                 <span className="font-black text-xl tracking-tight text-[#24332C] group-hover:text-[#5F9F7A] transition-colors">
                   Grasp
                 </span>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase border ${
-                  isStudent 
-                    ? 'bg-[#E7F2EB] text-[#397257] border-[#CFE4D7]' 
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase border ${isStudent
+                    ? 'bg-[#E7F2EB] text-[#397257] border-[#CFE4D7]'
                     : isTeacher
-                    ? 'bg-[#EBF8F7] text-[#24706C] border-[#ACE3E0]'
-                    : 'bg-[#FEF8E8] text-[#976C09] border-[#F8DC8E]'
-                }`}>
+                      ? 'bg-[#EBF8F7] text-[#24706C] border-[#ACE3E0]'
+                      : 'bg-[#FEF8E8] text-[#976C09] border-[#F8DC8E]'
+                  }`}>
                   {isStudent ? 'Student Space' : isTeacher ? 'Teacher Studio' : 'Parent Portal'}
                 </span>
               </div>
               <p className="text-[11px] text-[#718078]">
-                {isStudent 
-                  ? `Current Grade: ${currentUser.grade} • Sec ${currentUser.section}` 
+                {isStudent
+                  ? `Current Grade: ${currentUser.grade} • Sec ${currentUser.section}`
                   : isTeacher
-                  ? `${currentUser.department || 'Faculty'}`
-                  : `Child: ${currentUser.childName} (${currentUser.childGrade})`
+                    ? `${currentUser.department || 'Faculty'}`
+                    : `Child: ${currentUser.childName} (${currentUser.childGrade})`
                 }
               </p>
             </div>
@@ -71,7 +70,7 @@ export default function Navbar({ onOpenCreateClass, onOpenJoinClass }) {
 
         {/* Center/Right: Actions and Profile */}
         <div className="flex items-center gap-3">
-          
+
           {/* Action Button: Create Class for Teacher */}
           {isTeacher && (
             <button

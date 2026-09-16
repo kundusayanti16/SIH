@@ -99,8 +99,8 @@ export default function Sidebar({ onOpenCreateClass, onOpenJoinClass }) {
                   setActiveClassroomId(null);
                 }}
                 className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 ${isActive
-                    ? 'bg-gradient-to-r from-[#5F9F7A] to-[#397257] text-white shadow-md shadow-[#5F9F7A]/25'
-                    : 'text-[#718078] hover:text-[#24332C] hover:bg-[#E7F2EB]'
+                  ? 'bg-gradient-to-r from-[#5F9F7A] to-[#397257] text-white shadow-md shadow-[#5F9F7A]/25'
+                  : 'text-[#718078] hover:text-[#24332C] hover:bg-[#E7F2EB]'
                   }`}
               >
                 <div className="flex items-center gap-3">
@@ -109,10 +109,10 @@ export default function Sidebar({ onOpenCreateClass, onOpenJoinClass }) {
                 </div>
                 {item.badge !== undefined && (
                   <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${item.badge === 'Live'
-                      ? 'bg-rose-100 text-rose-700 border border-rose-200 animate-pulse'
-                      : isActive
-                        ? 'bg-white/20 text-white'
-                        : 'bg-[#F6F8F3] text-[#718078] border border-[#E2E8DE]'
+                    ? 'bg-rose-100 text-rose-700 border border-rose-200 animate-pulse'
+                    : isActive
+                      ? 'bg-white/20 text-white'
+                      : 'bg-[#F6F8F3] text-[#718078] border border-[#E2E8DE]'
                     }`}>
                     {item.badge}
                   </span>
